@@ -1,0 +1,12 @@
+torch
+torchvision
+transformers
+tqdm
+numpy
+matplotlib
+scipy
+scikit-image
+opencv-python
+tensorflow_datasets
+gradio
+tensorflow
