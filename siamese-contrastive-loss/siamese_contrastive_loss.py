@@ -20,7 +20,6 @@ K_WAY = 10 # Means the support set has K classes, this classes are unseen during
 N_SHOT = 5 # Means every class has N sampes
 N_CLASS = 100 # for cifar100 = 100, cifar10 = 10 etc... if K_WAY == 0 the model learns every class
 
-"""**Select Loss Function (Cosine Distance or Euclidean Distance):**"""
 
 CONTRASTIVE_COSINE = True #True cosine, False Euclidean
 
