@@ -11,6 +11,7 @@ import tensorflow_datasets as tfds
 
 # Constants
 K = 5  # Default number of top matches
+SIMILARITY_THRESHOLD = 0.55  # Default similarity threshold to filter results
 BATCH_SIZE = 16  # Batch size for DataLoader
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 IMAGE_SIZE = (224, 224)  # Resize images to this size
@@ -28,9 +29,9 @@ dataset, info = tfds.load("caltech101", split="test", with_info=True, as_supervi
 class_names = info.features["label"].names
 print(f"Classes in the dataset: {class_names}")
 
-# Select the first NUM_CLASSES classes
-selected_class_indices = list(range(NUM_CLASSES))
-selected_class_names = [class_names[i] for i in selected_class_indices]
+# Select classes (animals and common objects)
+selected_class_names = ['airplanes', 'wild_cat', 'butterfly', 'camera', 'kangaroo', 'elephant', 'motorbikes', 'chair', 'watch']
+selected_class_indices = [class_names.index(class_name) for class_name in selected_class_names]
 
 # Filter the dataset to include only the selected classes
 data = [(image, label) for image, label in tfds.as_numpy(dataset) if label in selected_class_indices]
@@ -119,7 +120,7 @@ def load_all_embeddings():
 
 train_image_features, train_labels, original_images = load_all_embeddings()
 
-def find_top_k_matches(input_image=None, input_text=None, top_k=K):
+def find_top_k_matches(input_image=None, input_text=None, top_k=K, similarity_threshold=SIMILARITY_THRESHOLD):
     if input_image is None and input_text is None:
         raise ValueError("Either input_image or input_text (or both) must be provided.")
     
@@ -150,15 +151,29 @@ def find_top_k_matches(input_image=None, input_text=None, top_k=K):
 
     combined_features = combined_features.to("cpu")
     similarity = torch.nn.functional.cosine_similarity(combined_features, train_image_features)
-    top_k_indices = similarity.topk(top_k).indices
+    
+    # Apply the similarity threshold to filter results
+    valid_indices = similarity >= similarity_threshold
+    
+    top_k_indices = similarity.topk(min(top_k, valid_indices.sum().item())).indices
     top_k_images = [Image.fromarray(original_images[idx]) for idx in top_k_indices]
-    top_k_labels = [selected_class_names[train_labels[idx].item()] for idx in top_k_indices]
+    top_k_labels = [selected_class_names[selected_class_indices.index(train_labels[idx].item())] for idx in top_k_indices]
+    # log topk similarity values
+    print(f"Top-K similarity values: {similarity[top_k_indices]}")
 
-    return top_k_images, "\n".join(top_k_labels)
+    
+    # Combine images and labels into a list of tuples
+    results = [(img, label) for img, label in zip(top_k_images, top_k_labels)]
+    
+    return results
 
 def get_example_image_and_label():
-    image_array, label = data[0]
-    return Image.fromarray(image_array), label
+    # Get an example image belonging to the 'elephant' class (index 5 in selected_class_names)
+    elephant_class_idx = selected_class_indices[selected_class_names.index("elephant")]
+    for image_array, label in data:
+        if label == elephant_class_idx:
+            return Image.fromarray(image_array), label
+    return None, None
 
 def setup_gradio_interface():
     image_input = gr.Image(type="pil", label="Input Image (optional)")
@@ -167,12 +182,12 @@ def setup_gradio_interface():
     gallery_output = gr.Gallery(label="Top Matches")
     
     example_image, example_label = get_example_image_and_label()
-    example_text = f"A picture of a {selected_class_names[example_label]}"
+    example_text = f"A picture of an {selected_class_names[selected_class_indices.index(example_label)]}"
     examples = [[example_image, example_text, 5]]
     
     description = f"""
     Find top-K similar images from the Caltech-101 dataset using CLIP. 
-    The following classes are available in the dataset:
+    This application is limited to the following classes:
     {', '.join(selected_class_names)}
     """
     
@@ -180,12 +195,12 @@ def setup_gradio_interface():
         fn=find_top_k_matches,
         inputs=[image_input, text_input, k_input],
         outputs=[gallery_output],
-        title="Caltech-101 Top-K Image Matcher",
+        title="Caltech-101 Top-K Image Matcher for Selected Classes",
         description=description,
         examples=examples
     )
 
 gradio_interface = setup_gradio_interface()
-gradio_interface.launch(server_name="0.0.0.0")  # Adjust this for your specific hosting environment (e.g., colab)
+gradio_interface.launch(server_name="0.0.0.0", debug=True)  # Adjust this for your specific hosting environment (e.g., Colab)
 
 clear_mem()
