@@ -27,10 +27,10 @@ Methods / Algorithms explored
 | ------------------------------------------------------------------------------------------------------------ | ------------ | ------------------------- |
 | 1\. Siamese Triplet Loss                                                                                     | 95.16        | 400                       |
 | 2\. Siamese Contrastive Loss                                                                                 | 95.58        | 400                       |
-| 3\. Autoencoder based                                                                                        | 89.05        | 250                       |
+| 3\. Autoencoder based                                                                                        | 89.05        | 1000                       |
 | 4\. Combination of Feature Matching,<br>Histogram Matching and<br>SSIM (Structural Similarity Index Measure) | 50.95        | Very slow on CPU          |
 | 5\. CLIP embedding (only image)                                                                              | 98.95        | 270                       |
-| 6\. CLIP embedding (image + text)                                                                            | 99.37        | 270                       |
+| **6\. CLIP embedding (image + text)**                                                                            | **99.37**        | 270                       |
 
 ## Conclusion
 
