@@ -50,3 +50,11 @@ Or directly run in `google colab`
 
 https://colab.research.google.com/drive/1rQ911tJZf8rCEipf5hcC0RTykk5F2mM8?usp=sharing
 
+
+## Citations
+
+- [Exploring Simple Siamese Representation Learning](https://arxiv.org/pdf/2011.10566)
+- [Learning Transferable Visual Models From Natural Language Supervision](https://arxiv.org/pdf/2103.00020)
+- [OpenAI CLIP](https://openai.com/index/clip/)
+- [Contrastive Loss](https://vitalab.github.io/article/2019/05/15/contrastiveLoss.html)
+
